@@ -1,0 +1,43 @@
+html {
+  background: #11e8bb; /* Old browsers */
+  background: -moz-linear-gradient( top,  #8b7ddb 0%, #b3e4fc 100% ); /* FF3.6-15 */
+  background: -webkit-linear-gradient( top,  #8b7ddb 0%,#b3e4fc 100% ); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient( to bottom,  #8b7ddb 0%,#b3e4fc 100% ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#8b7ddb', endColorstr='#b3e4fc',GradientType=0 ); /* IE6-9 */
+}
+
+body { 
+  margin: 0;
+  /*overflow: hidden;*/
+  -webkit-box-sizing:border-box; 
+} 
+canvas {
+  display: block;
+}
+div {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+#main
+{
+	Width: 100%;
+	Height: 100%;
+}
+
+#mainView
+{	
+	Width: 100%;
+	Height: 100%;
+	Position: Absolute;
+}
+
+#HUDView
+{
+	Width: 400px;
+	Height: 400px;
+	Position: Absolute;
+	Top: 0px;
+	Z-Index: 1000;
+}
