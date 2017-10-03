@@ -356,7 +356,7 @@
 
 	    var score = new THREE.Mesh( geo, mat );
 
-	    score.position.set(.3, 0, 23.3);
+	    score.position.set(.3, 0, 3);
 	    score.rotation.x = 90 * RAD;
 	    score.rotation.z = 270 * RAD;
 	    sceneHUD.add( score );
@@ -368,12 +368,43 @@
 
 	function createHUDHelpText()
 	{	
-		var text = 'W / S - Forward / Backward\nA / D - Rotate Player\nShift - Toggle View';
-
+		var text1 = 'W / S - Forward / Backward';
+		var text2 = 'A / D - Rotate Player';
+		var text3 = 'Shift - Toggle View';
+		var name = 'Charlene Juvida';
+		
 		var mat = new THREE.MeshLambertMaterial({color:'white'});
-	    var geo = new THREE.TextGeometry( text, {
+	   
+	    var geo1 = new THREE.TextGeometry( text1, {
 	    	font: 'calibri',
-	        size: 1,
+	        size: .5,
+	        height: .5,
+	        curveSegments: 20,
+	        bevelEnabled: false,
+	        bevelThickness: .025,
+	        bevelSize: 0
+	   	} );
+	   	var geo2 = new THREE.TextGeometry( text2, {
+	    	font: 'calibri',
+	        size: .5,
+	        height: .5,
+	        curveSegments: 20,
+	        bevelEnabled: false,
+	        bevelThickness: .025,
+	        bevelSize: 0
+	   	} );
+	   	var geo3 = new THREE.TextGeometry( text3, {
+	    	font: 'calibri',
+	        size: .5,
+	        height: .5,
+	        curveSegments: 20,
+	        bevelEnabled: false,
+	        bevelThickness: .025,
+	        bevelSize: 0
+	   	} );
+	   	var geo4 = new THREE.TextGeometry( name, {
+	    	font: 'calibri',
+	        size: .5,
 	        height: .5,
 	        curveSegments: 20,
 	        bevelEnabled: false,
@@ -381,11 +412,32 @@
 	        bevelSize: 0
 	   	} );
 
-	    var helpText = new THREE.Mesh( geo, mat );
-	    helpText.rotation.x = 90 * RAD;
-	    helpText.rotation.z = 270 * RAD;
 
-	    sceneHUD.add(helpText);
+	    var line1 = new THREE.Mesh( geo1, mat );
+	    line1.rotation.x = 90 * RAD;
+	    line1.rotation.z = 270 * RAD;
+
+	    var line2 = new THREE.Mesh( geo2, mat );
+	    line2.rotation.x = 90 * RAD;
+	    line2.rotation.z = 270 * RAD;
+
+	    var line3 = new THREE.Mesh( geo3, mat );
+	    line3.rotation.x = 90 * RAD;
+	    line3.rotation.z = 270 * RAD;
+
+	    var line4 = new THREE.Mesh( geo4, mat );
+	    line4.rotation.x = 90 * RAD;
+	    line4.rotation.z = 270 * RAD;
+
+	    line1.position.set(1, 0, -4);
+	    line2.position.set(0, 0, -4 );
+	    line3.position.set(-1,0, -4 );
+	    line4.position.set(-2, 0, -4 );
+
+	    sceneHUD.add(line1);
+	    sceneHUD.add(line2);
+	    sceneHUD.add(line3);
+	    sceneHUD.add(line4);
 	}
 
 	/*
@@ -532,7 +584,7 @@
 	    var material = new THREE.MeshLambertMaterial({color:'white'});
 	    scoreMesh = new THREE.Mesh( scoreText, material );
 
-	    scoreMesh.position.set(-2, 0, 21.5);
+	    scoreMesh.position.set(-2, 0, 1.3);
 	    scoreMesh.rotation.x = 90 * RAD;
 	    scoreMesh.rotation.z = 270 * RAD;
 
