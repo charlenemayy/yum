@@ -21,11 +21,13 @@
 
 		// Initial setup
 		setupCamera();
-		setupHUDCamera();
 		setupRenderer();
-		setupHUDRenderer();
 		addSpotLight();
 		loadSounds();
+
+		setupHUDCamera();
+		setupHUDRenderer();
+		addHUDSpotLight();
 
 		// Additional setup
 		createPlane();
@@ -80,24 +82,6 @@
 		renderer.shadowMapEnabled = true;
 		renderer.shadowMapType = THREE.BasicShadowMap;
 	}
-
-	function setupHUDCamera()
-	{
-		cameraHUD = new THREE.PerspectiveCamera(10, window.innerWidth / 100, 0.1, 4000); // ca, ar
-		cameraHUD.position.y = 41;
-		cameraHUD.lookAt( new THREE.Vector3(0,0,0) );
-	}
-
-	function setupHUDRenderer()
-	{
-		rendererHUD = new THREE.WebGLRenderer();
-		rendererHUD.setClearColor( 0xffffff, 3 );
-		rendererHUD.setSize( window.innerWidth, 100 ); // r.width, r.height
-		rendererHUD.shadowMapEnabled = true;
-
-		rendererHUD.enableScissorTest(true);
-		rendererHUD.setViewport( 0, 0, window.innerWidth, 100 );
-	}
 	
 	function addSpotLight()
 	{	
@@ -120,10 +104,37 @@
         scene.add(ambientlight);
 	}
 
+	function setupHUDCamera()
+	{
+		cameraHUD = new THREE.PerspectiveCamera(10, window.innerWidth / 100, 0.1, 4000); // ca, ar
+		cameraHUD.position.y = 31;
+		cameraHUD.lookAt( new THREE.Vector3(0,0,0) );
+	}
+
+	function setupHUDRenderer()
+	{
+		rendererHUD = new THREE.WebGLRenderer();
+		rendererHUD.setClearColor( 0xBABABA, 0 );
+		rendererHUD.setSize( window.innerWidth, 100 ); // r.width, r.height
+		rendererHUD.shadowMapEnabled = true;
+
+		//rendererHUD.enableScissorTest(true);
+		rendererHUD.setViewport( 10, 10, window.innerWidth, 100 );
+	}
+
+	function addHUDSpotLight()
+	{
+		spotLightHUD = new THREE.SpotLight( 0xffffff, 2, 200, 1);
+		spotLightHUD.position.set( 0, -150, 100 );
+        spotLightHUD.shadowCameraNear = 20;
+        spotLightHUD.shadowCameraFar = 50;
+        spotLightHUD.castShadow = true;
+	}
+
 	var scoreValue;
 	function createHUDScoreBoard()
 	{
-		var mat = new THREE.MeshLambertMaterial({color:'blue'});
+		var mat = new THREE.MeshLambertMaterial({color:'white'});
 	    var geo = new THREE.TextGeometry( 'Score', {
 	    	font: 'calibri',
 	        size: 1.5,
@@ -137,11 +148,13 @@
 	    var score = new THREE.Mesh( geo, mat );
 
 	    score.position.set(0, 0, 0);
+	    score.rotation.x = 270 * RAD;
+	    score.rotation.z = 90 * RAD;
 	    sceneHUD.add( score );
 
 	   	scoreValue = 0;
 
-	    updateScoreBoard(scoreValue);
+	    //updateScoreBoard(scoreValue);
 	}
 
 	var scoreMesh;
@@ -165,8 +178,9 @@
 	    });
 
 	    var material = new THREE.MeshLambertMaterial({color:'blue'});
-	    scoreMesh = new THREE.Mesh( scoreText, material );
 
+	    scoreMesh = new THREE.Mesh( scoreText, material );
+	    scoreMesh.rotation.x = 90 * RAD;
 	    scoreMesh.position.set(0, 0, 0);
 	    //scoreMesh.rotation.x = Math.PI / 2;
 
@@ -379,6 +393,8 @@
 		player.setLinearVelocity(new THREE.Vector3(0, 0, 0));
     	player.setAngularVelocity(new THREE.Vector3(0, 0, 0));
 
+    	if(firstperson)
+    	{
 			if( dPress == 0 ){
 				camera.position.x = player.position.x;
 				camera.position.y = player.position.y - 52;
@@ -398,20 +414,21 @@
 				camera.position.y = player.position.y;
 			}
 
-		// Up/Down
-		if( Key.isDown(Key.W))
-		{	
-			if( dPress == 0)
-				player.position.y += PLAYERSPEED;
-			if( dPress == 2)
-				player.position.y -= PLAYERSPEED;
-		}
-		else if( Key.isDown(Key.S))
-		{
-			if( dPress == 0)
-				player.position.y -= PLAYERSPEED;
-			if( dPress == 2)
-				player.position.y += PLAYERSPEED;
+			// Up/Down
+			if( Key.isDown(Key.W))
+			{	
+				if( dPress == 0)
+					player.position.y += PLAYERSPEED;
+				if( dPress == 2)
+					player.position.y -= PLAYERSPEED;
+			}
+			else if( Key.isDown(Key.S))
+			{
+				if( dPress == 0)
+					player.position.y -= PLAYERSPEED;
+				if( dPress == 2)
+					player.position.y += PLAYERSPEED;
+			}
 		}
 	}
 
@@ -533,29 +550,27 @@
 		}
 	}
 
-	var shiftPress = 0, dPress = 0, firstperson;
+	var shiftPress = 0, dPress = 0, firstperson = true;
 	function onKeyDown( event )
 	{	
 		switch( event.keyCode )
 		{		
 				// Shift Key
-				/*case 16: 
-					if(shiftPress % 2 == 0)
+				case 16: 
+					if(shiftPress % 2 == 1)
 						toggleFirstPerson();
 					else
 						toggleThirdPerson();
 
 					shiftPress++;
-					break;*/
+					break;
 
 				// D Key
 				case 68: 
-					camera.rotation.y += 90 * RAD;
-
-
+					if( firstperson )
+						camera.rotation.y += 90 * RAD;
 
 					dPress++; // Stores direction value
-										console.log(camera.rotation);
 
 					if(dPress > 3)
 						dPress = 0;
@@ -563,7 +578,8 @@
 
 				// A Key
 				case 65:
-					camera.rotation.y -= 90 * RAD;
+					if( firstperson )
+						camera.rotation.y -= 90 * RAD;
 
 					dPress--;
 
@@ -576,12 +592,14 @@
 	function toggleThirdPerson()
 	{	
 		scene.remove( camera )
-
 		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
 		camera.position.x = 0;
-		camera.position.y = -120;
+		camera.position.y = -80;
 		camera.position.z = 100;
+		camera.rotation.x = .674;
 		camera.lookAt( scene.position );
+		console.log(camera.position)
+		console.log(camera.rotation)
 
 		firstperson = false;
 	}
