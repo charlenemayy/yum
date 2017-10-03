@@ -33,7 +33,7 @@
 		createMaze();
 		createPlayer();
 		createOpponents();
-		//createPellets();
+		createPellets();
 
 		// Main Renderer
 		var container = document.getElementById( "mainView" );
@@ -51,7 +51,7 @@
 	function render()
 	{	
 		maintainPlayer();
-		//maintainOpponents();
+		maintainOpponents();
 
 		scene.simulate();		
 
@@ -62,7 +62,13 @@
 
 	function setupCamera()
 	{
-		// Camera
+		// Wide-View Camera
+		/*camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+		camera.position.x = 0;
+		camera.position.y = -100;
+		camera.position.z = 100;
+		camera.lookAt( scene.position );*/
+
 		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
 		camera.position.x = 0;
 		camera.position.y = -100;
@@ -137,7 +143,7 @@
 	{
 		var hgeo = new THREE.BoxGeometry( 100, 2, 8 );
 		var vgeo = new THREE.BoxGeometry( 2, 104, 8 );
-		var mat = Physijs.createMaterial( new THREE.MeshPhongMaterial({color:'blue', shading: THREE.FlatShading}), .95, .95 );
+		var mat = Physijs.createMaterial( new THREE.MeshPhongMaterial({color:'blue', shading: THREE.FlatShading}), .95, 0 );
 		
 		var upperWall = new Physijs.BoxMesh( hgeo, mat, 0 );
 		var lowerWall = new Physijs.BoxMesh( hgeo, mat, 0 );
@@ -161,7 +167,7 @@
 	}
 
 	const MARGIN = 4;
-	const NUMWALLS = 5;
+	const NUMWALLS = 150;
 	var sizeList, positionList, wallList;
 	function createMaze()
 	{	
@@ -183,7 +189,7 @@
 			if ( vertical )
 			{
 				sizeList[i][0] = 2;
-				sizeList[i][1] = generateParameters( 5, 30 );
+				sizeList[i][1] = 10;
 
 				positionList[i][0] = generateSpacedParameters( -49 + MARGIN, 49 - MARGIN, MARGIN );
 				positionList[i][1] = generateSpacedParameters( -50 + ( sizeList[i][1] / 2 ), 50 - ( sizeList[i][1] / 2 ), 4 );
@@ -191,16 +197,15 @@
 			// Modify x length; y = 2;
 			else
 			{
-				sizeList[i][0] = generateParameters( 5, 30 );	
+				sizeList[i][0] = 10;	
 				sizeList[i][1] = 2;
 
 				positionList[i][0] = generateSpacedParameters( -50 + ( sizeList[i][0] / 2 ), 50 - ( sizeList[i][0] / 2 ), 4 );
 				positionList[i][1] = generateSpacedParameters( -49 + MARGIN, 49 - MARGIN, MARGIN );
 			}
 
-			// Create wall
 			var geo = new THREE.BoxGeometry( sizeList[i][0], sizeList[i][1], 8 );
-			var mat = Physijs.createMaterial( new THREE.MeshPhongMaterial({color:'white', shading: THREE.FlatShading}), .95, .95 );
+			var mat = Physijs.createMaterial( new THREE.MeshPhongMaterial({color:'white', shading: THREE.FlatShading}), .95, 0 );
 			var wall = new Physijs.BoxMesh( geo, mat, 0 );
 			wall.name = 'Wall';
 
@@ -222,7 +227,7 @@
 	var player;
 	function createPlayer()
 	{	
-		var geo = new THREE.TetrahedronGeometry( 2, 2 );
+		var geo = new THREE.TetrahedronGeometry( 1, 2 );
 		var mat =  new Physijs.createMaterial( new THREE.MeshPhongMaterial({
 		        color: 0x95d5ed,
 		        shading: THREE.FlatShading ,
@@ -244,16 +249,20 @@
 		*/
 
 		player.position.set(0, 0, 2);
+		player.name = "Player";
 		scene.add( player );
 	}
 
 	const NUMENEMIES = 4;
-	var opponentList;
+	var opponentList, collision, directionList, time;
 	function createOpponents()
 	{	
 		opponentList = [];
+		directionList = [];
+		collision = false;
+		time = 120;
 
-		var geo = new THREE.TetrahedronGeometry( 2, 1 );
+		var geo = new THREE.TetrahedronGeometry( 1, 1 );
 		var mat =  new Physijs.createMaterial( new THREE.MeshPhongMaterial({
 		        color: 'purple',
 		        shading: THREE.FlatShading ,
@@ -263,15 +272,55 @@
 
 		for(var i = 0; i < NUMENEMIES; i++)
 		{
-			var opponent = new Physijs.SphereMesh( geo, mat, 0 );
+			// Generate position
+			var opponent = new Physijs.SphereMesh( geo, mat );
 			var x = generateParameters(-49, 49);
 			var y = generateParameters(-49, 49);
 
 			opponent.position.set(x, y, 2);
 			scene.add(opponent);
-    		opponent.addEventListener( 'collision', checkOpponentCollision);
+    		opponent.name = "Opponent";
 
+    		// Save to opponentList
 			opponentList.push(opponent);
+
+			// Generate random direction
+	    	directionList[i] = generateParameters( 1, 4 );
+		}
+
+		// Add event listeners for each enemy
+		opponentList[0].addEventListener( 'collision', checkOpponentCollision0);
+		opponentList[1].addEventListener( 'collision', checkOpponentCollision1);
+		opponentList[2].addEventListener( 'collision', checkOpponentCollision2);
+		opponentList[3].addEventListener( 'collision', checkOpponentCollision3);
+	}
+
+	const NUMPELLETS = 100;
+	var pelletList;
+	function createPellets()
+	{
+		pelletList = [];
+
+		var geo = new THREE.TetrahedronGeometry( .7, 0 );
+		var mat =  new Physijs.createMaterial( new THREE.MeshPhongMaterial({
+		        color: 'purple',
+		        shading: THREE.FlatShading ,
+		        metalness: 0,
+		        roughness: 0.8,
+		    }), 0, 0 );
+
+		for(var i = 0; i < NUMPELLETS; i++)
+		{
+			var pellet = new Physijs.SphereMesh( geo, mat, 0 );
+			var x = generateParameters(-49, 49);
+			var y = generateParameters(-49, 49);
+
+			pellet.position.set(x, y, 1);
+			scene.add(pellet);
+    		pellet.name = "Pellet";
+
+    		// Save to opponentList
+			pelletList.push(pellet);
 		}
 	}
 
@@ -299,8 +348,6 @@
 		player.setLinearVelocity(new THREE.Vector3(0, 0, 0));
     	player.setAngularVelocity(new THREE.Vector3(0, 0, 0));
 
-
-
 		// Up/Down
 		if( Key.isDown(Key.W))
 		{
@@ -323,47 +370,120 @@
 	}
 
 	const OPPONENTSPEED = .1;
+	var counter = 0;
+	var time = 120;
 	function maintainOpponents()
 	{	
 		for(var i = 0; i < NUMENEMIES; i++)
-		{
+		{	
 			opponentList[i].__dirtyPosition = true;
 			opponentList[i].__dirtyRotation = true;
 
 			opponentList[i].setLinearVelocity(new THREE.Vector3(0, 0, 0));
 	    	opponentList[i].setAngularVelocity(new THREE.Vector3(0, 0, 0));
 
-			// Move vertically first
-			// if( !collision )
-			if( opponentList[i].position.x < player.position.x )
-				opponentList[i].position.x += OPPONENTSPEED;
-			else
-				opponentList[i].position.x -= OPPONENTSPEED;
+	    	// Generate new direction every couple of frames
+	    	if(counter % 300 == 0)
+	    		if(generateParameters(0, 1))
+					switchDirection( i );
 
-			// if( collision )
-			if( opponentList[i].position.y < player.position.y )
-				opponentList[i].position.y += OPPONENTSPEED;
-			else
-				opponentList[i].position.y -= OPPONENTSPEED;
+	    	// Store current location
+	    	if(counter % 60 == 0)
+	    	{	
+	    		//console.log('store' + counter);
+	    		var time = counter + 59;
+	    		var prevx = opponentList[i].position.x;
+	    		var prevy = opponentList[i].position.y;
+	    	}
 
-			// Check for collisions
-			//opponentList[i].addEventListener( 'collision', checkCollision);
+	    	// Move opponent
+	    	if(directionList[i] == 1) // Up
+	    	{
+	    		opponentList[i].position.y += OPPONENTSPEED;
+	    	}
+	    	else if(directionList[i] == 2) // Down
+	    	{
+	    		opponentList[i].position.y -= OPPONENTSPEED;
+	    	}
+	    	else if(directionList[i] == 3) // Left
+	    	{
+	    		opponentList[i].position.x -= OPPONENTSPEED;
+	    	}
+	    	else if(directionList[i] == 4) // Right
+	    	{
+	    		opponentList[i].position.x += OPPONENTSPEED;
+	    	}
+
+	    	if(counter == time)
+	    	{	
+	    		console.log('check' + counter)
+		    	// Compare movement to check if stuck
+		    	if( directionList[i] == 1 || directionList[i] == 2 )
+		    	{	
+		    		if(( opponentList[i].position.y - prevy ) < OPPONENTSPEED )
+		    			console.log('nonmoving')
+		    	}
+		    	else
+		    	{	
+		    		if(( opponentList[i].position.x - prevx ) < OPPONENTSPEED )
+		    			console.log('nonmoving')
+		    	}
+		    }
 		}
+
+		counter++;
+	}
+
+	function switchDirection( index )
+	{	
+		var previous = directionList[index];
+
+		while(directionList[index] == previous)
+			directionList[index] = generateParameters( 1, 4 );
+
+		//console.log('Switching index ' + index + ' from ' + previous + ' to ' + directionList[index]);
 	}
 
 	function checkCollision( other_object, linear_velocity, angular_velocity )
 	{
-		if( other_object.name == 'Wall' )
+		if( other_object.name == 'Opponent' )
+			console.log('GAME OVER')
+		else if( other_object.name == 'Pellet' )
 		{
-			console.log('hitme');
+			scene.remove(other_object);
+			//score++;
 		}
 	}
 
-	function checkOpponentCollision( other_object, linear_velocity, angular_velocity )
+	function checkOpponentCollision0( other_object, linear_velocity, angular_velocity )
 	{
 		if( other_object.name == 'Wall' )
 		{
-			
+        	switchDirection( 0 );
+		}
+	}
+
+	function checkOpponentCollision1( other_object, linear_velocity, angular_velocity )
+	{
+		if( other_object.name == 'Wall' )
+		{
+        	switchDirection( 1 );
+		}
+	}
+
+	function checkOpponentCollision2( other_object, linear_velocity, angular_velocity )
+	{
+		if( other_object.name == 'Wall' )
+		{
+        	switchDirection( 2 );
+		}
+	}
+
+	function checkOpponentCollision3( other_object, linear_velocity, angular_velocity )
+	{
+		if( other_object.name == 'Wall' )
+		{
+        	switchDirection( 3 );
 		}
 	}
 
