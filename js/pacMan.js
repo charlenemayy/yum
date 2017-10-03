@@ -43,7 +43,7 @@
 		var containerHUD = document.getElementById( "HUDView" );
 		containerHUD.appendChild( rendererHUD.domElement );
 
-		//document.addEventListener( 'keydown', onKeyDown, false );
+		document.addEventListener( 'keydown', onKeyDown, false );
 
 		render();
 	}
@@ -69,11 +69,14 @@
 		camera.position.z = 100;
 		camera.lookAt( scene.position );*/
 
-		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+		camera = new THREE.PerspectiveCamera( 5, window.innerWidth / window.innerHeight, 0.1, 1000 );
 		camera.position.x = 0;
-		camera.position.y = -100;
-		camera.position.z = 100;
-		camera.lookAt( scene.position );
+		camera.position.y = -52;
+		camera.position.z = 3;
+				console.log(camera.rotation.x);
+		camera.rotation.x = 90 * RAD;
+		console.log(camera.rotation.x);
+		//camera.lookAt( scene.position );
 	}
 
 	function setupHUDCamera()
@@ -167,7 +170,7 @@
 	}
 
 	const MARGIN = 4;
-	const NUMWALLS = 150;
+	const NUMWALLS = 0;
 	var sizeList, positionList, wallList;
 	function createMaze()
 	{	
@@ -358,7 +361,7 @@
 			player.position.y -= PLAYERSPEED;
 		}
 		// Left/Right
-		else if( Key.isDown(Key.A))
+		/*else if( Key.isDown(Key.A))
 		{
 			player.position.x -= PLAYERSPEED;
 		}
@@ -366,7 +369,7 @@
 		else if( Key.isDown(Key.D))
 		{
 			player.position.x += PLAYERSPEED;
-		}
+		}*/
 	}
 
 	const OPPONENTSPEED = .1;
@@ -492,13 +495,9 @@
 	{	
 		switch( event.keyCode )
 		{
-				case 16: 
-				if(press % 2 == 0)
-					toggleFirstPerson();
-				else
-					toggleThirdPerson();
-
-				press++;
+				case 68: 
+				camera.rotation.y += 90 * RAD;
+				//camera.rotation.x -= 90 * RAD;
 
 				break;
 		}
