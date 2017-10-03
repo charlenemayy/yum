@@ -34,6 +34,7 @@
 		createPlayer();
 		createOpponents();
 		createPellets();
+		createHUDScoreBoard();
 
 		// Main Renderer
 		var container = document.getElementById( "mainView" );
@@ -69,13 +70,6 @@
 		camera.rotation.x = 89 * RAD;
 	}
 
-	function setupHUDCamera()
-	{
-		cameraHUD = new THREE.PerspectiveCamera(10, window.innerWidth / 100, 0.1, 4000); // ca, ar
-		cameraHUD.position.y = 41;
-		cameraHUD.lookAt( new THREE.Vector3(0,0,0) );
-	}
-
 	function setupRenderer()
 	{
 		renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -87,10 +81,17 @@
 		renderer.shadowMapType = THREE.BasicShadowMap;
 	}
 
+	function setupHUDCamera()
+	{
+		cameraHUD = new THREE.PerspectiveCamera(10, window.innerWidth / 100, 0.1, 4000); // ca, ar
+		cameraHUD.position.y = 41;
+		cameraHUD.lookAt( new THREE.Vector3(0,0,0) );
+	}
+
 	function setupHUDRenderer()
 	{
 		rendererHUD = new THREE.WebGLRenderer();
-		rendererHUD.setClearColor( 0x000000, 0 );
+		rendererHUD.setClearColor( 0xffffff, 3 );
 		rendererHUD.setSize( window.innerWidth, 100 ); // r.width, r.height
 		rendererHUD.shadowMapEnabled = true;
 
@@ -117,6 +118,59 @@
 
         ambientlight = new THREE.AmbientLight(0xbababa);
         scene.add(ambientlight);
+	}
+
+	var scoreValue;
+	function createHUDScoreBoard()
+	{
+		var mat = new THREE.MeshLambertMaterial({color:'blue'});
+	    var geo = new THREE.TextGeometry( 'Score', {
+	    	font: 'calibri',
+	        size: 1.5,
+	        height: .5,
+	        curveSegments: 10,
+	        bevelEnabled: false,
+	        bevelThickness: .1,
+	        bevelSize: 0
+	   	} );
+
+	    var score = new THREE.Mesh( geo, mat );
+
+	    score.position.set(0, 0, 0);
+	    sceneHUD.add( score );
+
+	   	scoreValue = 0;
+
+	    updateScoreBoard(scoreValue);
+	}
+
+	var scoreMesh;
+	function updateScoreBoard()
+	{
+		if(scoreMesh != null)
+			scene.remove(scoreMesh);
+
+		// Update scores
+		var scoreString = ( scoreValue < 10 ) ? '0' + scoreValue.toString() : scoreValue.toString();
+
+	    var scoreText = new THREE.TextGeometry((scoreValue),
+	    {
+	    	font: 'calibri',
+	        size: 2.5,
+	        height: .5,
+	        curveSegments: 10,
+	        bevelEnabled: false,
+	        bevelThickness: .25,
+	        bevelSize: 0
+	    });
+
+	    var material = new THREE.MeshLambertMaterial({color:'blue'});
+	    scoreMesh = new THREE.Mesh( scoreText, material );
+
+	    scoreMesh.position.set(0, 0, 0);
+	    //scoreMesh.rotation.x = Math.PI / 2;
+
+	    sceneHUD.add( scoreMesh );
 	}
 
 	var groundPlane;
@@ -443,7 +497,7 @@
 		else if( other_object.name == 'Pellet' )
 		{
 			scene.remove(other_object);
-			//score++;
+			scoreValue++;
 		}
 	}
 
