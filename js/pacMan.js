@@ -4,9 +4,13 @@
 	var camera, cameraHUD;
 	var spotLight, spotlight2, ambientlight;
 
-	var point = [];
-	const RAD = Math.PI / 180;
-
+	const RAD = Math.PI / 180; // Degree to radian conversion
+	const MARGIN = 4; // Space between walls
+	const NUMWALLS = 0; // Number of walls
+	const NUMOPPONENT = 4; // Number of opponents
+	const NUMPELLETS = 100; // Number of pellets
+	const PLAYERSPEED = .2; // Player movement speed
+	const OPPONENTSPEED = .1; // Opponent movement speed
 
 	function init()
 	{	
@@ -18,17 +22,6 @@
 		scene.setGravity(new THREE.Vector3( 0, 0, -30 ));
 
 		sceneHUD = new THREE.Scene();
-
-		var geo = new THREE.BoxGeometry( 5, 5, 5);
-		var mat = new THREE.MeshPhongMaterial({
-		        color: 'red',
-		        shading: THREE.FlatShading ,
-		        metalness: 0,
-		        roughness: 0.8,
-		    });
-		var mesh = new THREE.Mesh(geo, mat);
-		mesh.position.set(30,30,2)
-		scene.add(mesh);
 
 		// Initial setup
 		setupCamera();
@@ -242,8 +235,6 @@
 		scene.add( rightWall );
 	}
 
-	const MARGIN = 4;
-	const NUMWALLS = 0;
 	var sizeList, positionList, wallList;
 	function createMaze()
 	{	
@@ -313,7 +304,6 @@
 		scene.add( player );
 	}
 
-	const NUMENEMIES = 4;
 	var opponentList, collision, directionList, time;
 	function createOpponents()
 	{	
@@ -330,7 +320,7 @@
 		        roughness: 0.8,
 		    }), 0, 0 );
 
-		for(var i = 0; i < NUMENEMIES; i++)
+		for(var i = 0; i < NUMOPPONENT; i++)
 		{
 			// Generate position
 			var opponent = new Physijs.SphereMesh( geo, mat );
@@ -355,7 +345,6 @@
 		opponentList[3].addEventListener( 'collision', checkOpponentCollision3);
 	}
 
-	const NUMPELLETS = 100;
 	var pelletList;
 	function createPellets()
 	{
@@ -399,7 +388,6 @@
 		return n;
 	}
 
-	const PLAYERSPEED = .2;
 	function maintainPlayer()
 	{	
 		player.__dirtyPosition = true;
@@ -469,12 +457,10 @@
 		}
 	}
 
-	const OPPONENTSPEED = .1;
 	var counter = 0;
-	var time = 120;
 	function maintainOpponents()
 	{	
-		for(var i = 0; i < NUMENEMIES; i++)
+		for(var i = 0; i < NUMOPPONENT; i++)
 		{	
 			opponentList[i].__dirtyPosition = true;
 			opponentList[i].__dirtyRotation = true;
@@ -514,8 +500,6 @@
 
 		while(directionList[index] == previous)
 			directionList[index] = generateParameters( 1, 4 );
-
-		//console.log('Switching index ' + index + ' from ' + previous + ' to ' + directionList[index]);
 	}
 
 	function checkCollision( other_object, linear_velocity, angular_velocity )
@@ -613,8 +597,6 @@
 		camera.position.z = 100;
 		camera.rotation.x = .674;
 		camera.lookAt( scene.position );
-		console.log(camera.position)
-		console.log(camera.rotation)
 
 		firstperson = false;
 	}
