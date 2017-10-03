@@ -55,7 +55,6 @@
 	{	
 		maintainPlayer();
 		maintainOpponents();
-
 		scene.simulate();		
 
 		requestAnimationFrame( render );
@@ -85,7 +84,6 @@
 	
 	function addSpotLight()
 	{	
-
 		spotLight = new THREE.SpotLight( 0xffffff, 2, 200, 1);
         spotLight.position.set( 0, -150, 100 );
         spotLight.shadowCameraNear = 20;
@@ -107,7 +105,7 @@
 	function setupHUDCamera()
 	{
 		cameraHUD = new THREE.PerspectiveCamera(10, window.innerWidth / 100, 0.1, 4000); // ca, ar
-		cameraHUD.position.y = 31;
+		cameraHUD.position.y = -31;
 		cameraHUD.lookAt( new THREE.Vector3(0,0,0) );
 	}
 
@@ -124,11 +122,17 @@
 
 	function addHUDSpotLight()
 	{
-		spotLightHUD = new THREE.SpotLight( 0xffffff, 2, 200, 1);
-		spotLightHUD.position.set( 0, -150, 100 );
+		spotLightHUD = new THREE.SpotLight( 0xffffff, 2.5, 200, 1);
+		spotLightHUD.position.set( 0, -31, 50 );
+		spotLightHUD.lookAt( new THREE.Vector3(0, 0, 21));
         spotLightHUD.shadowCameraNear = 20;
         spotLightHUD.shadowCameraFar = 50;
         spotLightHUD.castShadow = true;
+        sceneHUD.add(spotLightHUD);
+
+
+        ambientlightHUD = new THREE.AmbientLight(0xe0e0e0);
+        //sceneHUD.add(ambientlightHUD);
 	}
 
 	var scoreValue;
@@ -139,29 +143,29 @@
 	    	font: 'calibri',
 	        size: 1.5,
 	        height: .5,
-	        curveSegments: 10,
+	        curveSegments: 20,
 	        bevelEnabled: false,
-	        bevelThickness: .1,
+	        bevelThickness: .025,
 	        bevelSize: 0
 	   	} );
 
 	    var score = new THREE.Mesh( geo, mat );
 
-	    score.position.set(0, 0, 0);
-	    score.rotation.x = 270 * RAD;
-	    score.rotation.z = 90 * RAD;
+	    score.position.set(.3, 0, 23.3);
+	    score.rotation.x = 90 * RAD;
+	    score.rotation.z = 270 * RAD;
 	    sceneHUD.add( score );
 
 	   	scoreValue = 0;
 
-	    //updateScoreBoard(scoreValue);
+	    updateScoreBoard(scoreValue);
 	}
 
 	var scoreMesh;
-	function updateScoreBoard()
+	function updateScoreBoard( scoreValue )
 	{
-		if(scoreMesh != null)
-			scene.remove(scoreMesh);
+		if(scoreMesh != null)	
+			sceneHUD.remove(scoreMesh);
 
 		// Update scores
 		var scoreString = ( scoreValue < 10 ) ? '0' + scoreValue.toString() : scoreValue.toString();
@@ -169,7 +173,7 @@
 	    var scoreText = new THREE.TextGeometry((scoreValue),
 	    {
 	    	font: 'calibri',
-	        size: 2.5,
+	        size: 2,
 	        height: .5,
 	        curveSegments: 10,
 	        bevelEnabled: false,
@@ -177,12 +181,12 @@
 	        bevelSize: 0
 	    });
 
-	    var material = new THREE.MeshLambertMaterial({color:'blue'});
-
+	    var material = new THREE.MeshLambertMaterial({color:'white'});
 	    scoreMesh = new THREE.Mesh( scoreText, material );
+
+	    scoreMesh.position.set(-2, 0, 21.5);
 	    scoreMesh.rotation.x = 90 * RAD;
-	    scoreMesh.position.set(0, 0, 0);
-	    //scoreMesh.rotation.x = Math.PI / 2;
+	    scoreMesh.rotation.z = 270 * RAD;
 
 	    sceneHUD.add( scoreMesh );
 	}
@@ -514,7 +518,7 @@
 		else if( other_object.name == 'Pellet' )
 		{
 			scene.remove(other_object);
-			scoreValue++;
+			updateScoreBoard( ++scoreValue );
 		}
 	}
 
