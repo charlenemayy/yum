@@ -243,7 +243,7 @@
 	}
 
 	const MARGIN = 4;
-	const NUMWALLS = 100;
+	const NUMWALLS = 0;
 	var sizeList, positionList, wallList;
 	function createMaze()
 	{	
@@ -483,18 +483,9 @@
 	    	opponentList[i].setAngularVelocity(new THREE.Vector3(0, 0, 0));
 
 	    	// Generate new direction every couple of frames
-	    	if(counter % 300 == 0)
+	    	if(counter % 100 == 0)
 	    		if(generateParameters(0, 1))
 					switchDirection( i );
-
-	    	// Store current location
-	    	if(counter % 60 == 0)
-	    	{	
-	    		//console.log('store' + counter);
-	    		var time = counter + 59;
-	    		var prevx = opponentList[i].position.x;
-	    		var prevy = opponentList[i].position.y;
-	    	}
 
 	    	// Move opponent
 	    	if(directionList[i] == 1) // Up
@@ -513,24 +504,7 @@
 	    	{
 	    		opponentList[i].position.x += OPPONENTSPEED;
 	    	}
-
-	    	if(counter == time)
-	    	{	
-	    		console.log('check' + counter)
-		    	// Compare movement to check if stuck
-		    	if( directionList[i] == 1 || directionList[i] == 2 )
-		    	{	
-		    		if(( opponentList[i].position.y - prevy ) < OPPONENTSPEED )
-		    			console.log('nonmoving')
-		    	}
-		    	else
-		    	{	
-		    		if(( opponentList[i].position.x - prevx ) < OPPONENTSPEED )
-		    			console.log('nonmoving')
-		    	}
-		    }
 		}
-
 		counter++;
 	}
 
