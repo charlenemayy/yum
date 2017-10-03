@@ -33,7 +33,7 @@
 		setupHUDRenderer();
 		addHUDSpotLight();
 
-		// Additional setup
+		// Asset Creation
 		createPlane();
 		createBoundingWalls();
 		createMaze();
@@ -41,6 +41,7 @@
 		createOpponents();
 		createPellets();
 		createHUDScoreBoard();
+		createHUDHelpText();
 
 		// Main Renderer
 		var container = document.getElementById( "mainView" );
@@ -55,17 +56,9 @@
 		render();
 	}
 
-	function render()
-	{	
-		maintainPlayer();
-		maintainOpponents();
-		scene.simulate();		
-
-		requestAnimationFrame( render );
-		renderer.render( scene, camera );
-		rendererHUD.render( sceneHUD, cameraHUD );
-	}
-
+	/*
+	 * INITIAL SETUP
+	 */
 	function setupCamera()
 	{
 		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -106,6 +99,22 @@
         scene.add(ambientlight);
 	}
 
+	var explode, one, two, three, four, five;
+	function loadSounds()
+	{
+		explode = new Audio("sounds/shotgun.mp3");
+		music = new Audio("sounds/train station_12.mp3")
+
+		music.addEventListener('ended', function() 
+		{
+			this.currentTime = 0;
+			this.play();
+		}, false);
+
+		music.volume = .3;
+		//music.play();
+	}
+
 	function setupHUDCamera()
 	{
 		cameraHUD = new THREE.PerspectiveCamera(10, window.innerWidth / 100, 0.1, 4000); // ca, ar
@@ -139,62 +148,20 @@
         //sceneHUD.add(ambientlightHUD);
 	}
 
-	var scoreValue;
-	function createHUDScoreBoard()
-	{
-		var mat = new THREE.MeshLambertMaterial({color:'white'});
-	    var geo = new THREE.TextGeometry( 'Score', {
-	    	font: 'calibri',
-	        size: 1.5,
-	        height: .5,
-	        curveSegments: 20,
-	        bevelEnabled: false,
-	        bevelThickness: .025,
-	        bevelSize: 0
-	   	} );
+	function render()
+	{	
+		maintainPlayer();
+		maintainOpponents();
+		scene.simulate();		
 
-	    var score = new THREE.Mesh( geo, mat );
-
-	    score.position.set(.3, 0, 23.3);
-	    score.rotation.x = 90 * RAD;
-	    score.rotation.z = 270 * RAD;
-	    sceneHUD.add( score );
-
-	   	scoreValue = 0;
-
-	    updateScoreBoard(scoreValue);
+		requestAnimationFrame( render );
+		renderer.render( scene, camera );
+		rendererHUD.render( sceneHUD, cameraHUD );
 	}
 
-	var scoreMesh;
-	function updateScoreBoard( scoreValue )
-	{
-		if(scoreMesh != null)	
-			sceneHUD.remove(scoreMesh);
-
-		// Update scores
-		var scoreString = ( scoreValue < 10 ) ? '0' + scoreValue.toString() : scoreValue.toString();
-
-	    var scoreText = new THREE.TextGeometry((scoreValue),
-	    {
-	    	font: 'calibri',
-	        size: 2,
-	        height: .5,
-	        curveSegments: 10,
-	        bevelEnabled: false,
-	        bevelThickness: .25,
-	        bevelSize: 0
-	    });
-
-	    var material = new THREE.MeshLambertMaterial({color:'white'});
-	    scoreMesh = new THREE.Mesh( scoreText, material );
-
-	    scoreMesh.position.set(-2, 0, 21.5);
-	    scoreMesh.rotation.x = 90 * RAD;
-	    scoreMesh.rotation.z = 270 * RAD;
-
-	    sceneHUD.add( scoreMesh );
-	}
-
+	/*
+	 * ASSET CREATION
+	 */
 	var groundPlane;
 	function createPlane()
 	{
@@ -373,22 +340,56 @@
 		}
 	}
 
-	function generateParameters( lowerBound, upperBound )
-	{	
-		return Math.floor( Math.random() * ( upperBound - lowerBound + 1 )) + lowerBound;
+	var scoreValue;
+	function createHUDScoreBoard()
+	{
+		var mat = new THREE.MeshLambertMaterial({color:'white'});
+	    var geo = new THREE.TextGeometry( 'Score', {
+	    	font: 'calibri',
+	        size: 1.5,
+	        height: .5,
+	        curveSegments: 20,
+	        bevelEnabled: false,
+	        bevelThickness: .025,
+	        bevelSize: 0
+	   	} );
+
+	    var score = new THREE.Mesh( geo, mat );
+
+	    score.position.set(.3, 0, 23.3);
+	    score.rotation.x = 90 * RAD;
+	    score.rotation.z = 270 * RAD;
+	    sceneHUD.add( score );
+
+	   	scoreValue = 0;
+
+	    updateScoreBoard(scoreValue);
 	}
 
-	function generateSpacedParameters( lowerBound, upperBound, margin )
-	{	
-		var n = Math.floor(( Math.floor( Math.random() * ( upperBound - lowerBound + 1 )) + lowerBound) / margin ) * margin;
+	function createHUDHelpText()
+	{
+		var mat = new THREE.MeshLambertMaterial({color:'white'});
+	    var geo = new THREE.TextGeometry( 'Score', {
+	    	font: 'calibri',
+	        size: 1,
+	        height: .5,
+	        curveSegments: 20,
+	        bevelEnabled: false,
+	        bevelThickness: .025,
+	        bevelSize: 0
+	   	} );
 
-		if(n < lowerBound)
-			n = lowerBound;
+	    var helpText = new THREE.Mesh( geo, mat );
+	    helpText.rotation.x = 90 * RAD;
+	    helpText.rotation.z = 270 * RAD;
 
-		return n;
+	    sceneHUD.add(helpText);
 	}
 
-	function maintainPlayer()
+	/*
+	 * RENDER + ANIMATION
+	 */
+	 function maintainPlayer()
 	{	
 		player.__dirtyPosition = true;
 		player.__dirtyRotation = true;
@@ -494,6 +495,10 @@
 		counter++;
 	}
 
+	/*
+	 * HELPER FUNCTIONS
+	 */
+	// Switches opponent direction at collision or at random
 	function switchDirection( index )
 	{	
 		var previous = directionList[index];
@@ -502,6 +507,56 @@
 			directionList[index] = generateParameters( 1, 4 );
 	}
 
+	var scoreMesh;
+	function updateScoreBoard( scoreValue )
+	{
+		if(scoreMesh != null)	
+			sceneHUD.remove(scoreMesh);
+
+		// Update score value
+		var scoreString = ( scoreValue < 10 ) ? '0' + scoreValue.toString() : scoreValue.toString();
+
+	    var scoreText = new THREE.TextGeometry((scoreValue),
+	    {
+	    	font: 'calibri',
+	        size: 2,
+	        height: .5,
+	        curveSegments: 10,
+	        bevelEnabled: false,
+	        bevelThickness: .25,
+	        bevelSize: 0
+	    });
+
+	    var material = new THREE.MeshLambertMaterial({color:'white'});
+	    scoreMesh = new THREE.Mesh( scoreText, material );
+
+	    scoreMesh.position.set(-2, 0, 21.5);
+	    scoreMesh.rotation.x = 90 * RAD;
+	    scoreMesh.rotation.z = 270 * RAD;
+
+	    sceneHUD.add( scoreMesh );
+	}
+
+	// Generates random values between 2 values
+	function generateParameters( lowerBound, upperBound )
+	{	
+		return Math.floor( Math.random() * ( upperBound - lowerBound + 1 )) + lowerBound;
+	}
+
+	// Generates random values between 2 values at intervals
+	function generateSpacedParameters( lowerBound, upperBound, margin )
+	{	
+		var n = Math.floor(( Math.floor( Math.random() * ( upperBound - lowerBound + 1 )) + lowerBound) / margin ) * margin;
+
+		if(n < lowerBound)
+			n = lowerBound;
+
+		return n;
+	}
+
+	/*
+	 * EVENT LISTENERS
+	 */
 	function checkCollision( other_object, linear_velocity, angular_velocity )
 	{
 		if( other_object.name == 'Opponent' )
@@ -608,22 +663,6 @@
 		setupCamera();
 
 		firstperson = true;
-	}
-
-	var explode, one, two, three, four, five;
-	function loadSounds()
-	{
-		explode = new Audio("sounds/shotgun.mp3");
-		music = new Audio("sounds/train station_12.mp3")
-
-		music.addEventListener('ended', function() 
-		{
-			this.currentTime = 0;
-			this.play();
-		}, false);
-
-		music.volume = .3;
-		//music.play();
 	}
 
 	window.onload = init;
