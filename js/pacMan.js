@@ -62,21 +62,11 @@
 
 	function setupCamera()
 	{
-		// Wide-View Camera
-		/*camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
-		camera.position.x = 0;
-		camera.position.y = -100;
-		camera.position.z = 100;
-		camera.lookAt( scene.position );*/
-
 		camera = new THREE.PerspectiveCamera( 5, window.innerWidth / window.innerHeight, 0.1, 1000 );
 		camera.position.x = 0;
 		camera.position.y = -52;
 		camera.position.z = 3;
-				console.log(camera.rotation.x);
-		camera.rotation.x = 90 * RAD;
-		console.log(camera.rotation.x);
-		//camera.lookAt( scene.position );
+		camera.rotation.x = 89 * RAD;
 	}
 
 	function setupHUDCamera()
@@ -215,13 +205,6 @@
 			// Choose position
 			wall.position.set( positionList[i][0], positionList[i][1], 4 );
 
-			// DEBUG: Log sizes + position
-			
-			/*console.log('WALL ' + i + ':');
-			console.log(vertical);
-			console.log(sizeList[i]);
-			console.log(positionList[i]);*/
-
 			wallList.push( wall );
 			scene.add( wall );
 		}
@@ -241,15 +224,6 @@
 
 		player = new Physijs.SphereMesh( geo, mat );
     	player.addEventListener( 'collision', checkCollision);
-		// No physics
-		/*var mat = new THREE.MeshPhongMaterial({
-		        color: 0x95d5ed,
-		        shading: THREE.FlatShading ,
-		        metalness: 0,
-		        roughness: 0.8,
-		    });
-		player = new THREE.Mesh( geo, mat );
-		*/
 
 		player.position.set(0, 0, 2);
 		player.name = "Player";
@@ -351,25 +325,40 @@
 		player.setLinearVelocity(new THREE.Vector3(0, 0, 0));
     	player.setAngularVelocity(new THREE.Vector3(0, 0, 0));
 
+			if( dPress == 0 ){
+				camera.position.x = player.position.x;
+				camera.position.y = player.position.y - 52;
+				camera.rotation.x = 89 * RAD;
+			}
+			else if( dPress == 1 ){
+				camera.position.x = player.position.x - 52;
+				camera.position.y = player.position.y;
+			}
+			else if( dPress == 2 ){
+				camera.position.x = player.position.x;
+				camera.position.y = player.position.y + 52;
+				camera.rotation.x = 91 * RAD;
+			}
+			else if( dPress == 3 ){
+				camera.position.x = player.position.x + 52;
+				camera.position.y = player.position.y;
+			}
+
 		// Up/Down
 		if( Key.isDown(Key.W))
-		{
-			player.position.y += PLAYERSPEED;
+		{	
+			if( dPress == 0)
+				player.position.y += PLAYERSPEED;
+			if( dPress == 2)
+				player.position.y -= PLAYERSPEED;
 		}
 		else if( Key.isDown(Key.S))
 		{
-			player.position.y -= PLAYERSPEED;
+			if( dPress == 0)
+				player.position.y -= PLAYERSPEED;
+			if( dPress == 2)
+				player.position.y += PLAYERSPEED;
 		}
-		// Left/Right
-		/*else if( Key.isDown(Key.A))
-		{
-			player.position.x -= PLAYERSPEED;
-		}
-			
-		else if( Key.isDown(Key.D))
-		{
-			player.position.x += PLAYERSPEED;
-		}*/
 	}
 
 	const OPPONENTSPEED = .1;
@@ -490,17 +479,65 @@
 		}
 	}
 
-	var press = 0, firstperson;
+	var shiftPress = 0, dPress = 0, firstperson;
 	function onKeyDown( event )
 	{	
 		switch( event.keyCode )
-		{
-				case 68: 
-				camera.rotation.y += 90 * RAD;
-				//camera.rotation.x -= 90 * RAD;
+		{		
+				// Shift Key
+				/*case 16: 
+					if(shiftPress % 2 == 0)
+						toggleFirstPerson();
+					else
+						toggleThirdPerson();
 
-				break;
+					shiftPress++;
+					break;*/
+
+				// D Key
+				case 68: 
+					camera.rotation.y += 90 * RAD;
+
+
+
+					dPress++; // Stores direction value
+										console.log(camera.rotation);
+
+					if(dPress > 3)
+						dPress = 0;
+					break;
+
+				// A Key
+				case 65:
+					camera.rotation.y -= 90 * RAD;
+
+					dPress--;
+
+					if(dPress < 0)
+						dPress = 3;
+					break;
 		}
+	}
+
+	function toggleThirdPerson()
+	{	
+		scene.remove( camera )
+
+		camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+		camera.position.x = 0;
+		camera.position.y = -120;
+		camera.position.z = 100;
+		camera.lookAt( scene.position );
+
+		firstperson = false;
+	}
+
+	function toggleFirstPerson()
+	{	
+		scene.remove( camera )
+		setupCamera();
+
+		firstperson = true;
 	}
 
 	var explode, one, two, three, four, five;
