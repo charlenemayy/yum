@@ -124,8 +124,8 @@
 
 	function setupHUDRenderer()
 	{
-		rendererHUD = new THREE.WebGLRenderer();
-		rendererHUD.setClearColor( 0xBABABA, 0 );
+		rendererHUD = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+		rendererHUD.setClearColor( 0x000000, 0 );
 		rendererHUD.setSize( window.innerWidth, 100 ); // r.width, r.height
 		rendererHUD.shadowMapEnabled = true;
 
@@ -367,9 +367,11 @@
 	}
 
 	function createHUDHelpText()
-	{
+	{	
+		var text = 'W / S - Forward / Backward\nA / D - Rotate Player\nShift - Toggle View';
+
 		var mat = new THREE.MeshLambertMaterial({color:'white'});
-	    var geo = new THREE.TextGeometry( 'Score', {
+	    var geo = new THREE.TextGeometry( text, {
 	    	font: 'calibri',
 	        size: 1,
 	        height: .5,
