@@ -19,6 +19,17 @@
 
 		sceneHUD = new THREE.Scene();
 
+		var geo = new THREE.BoxGeometry( 5, 5, 5);
+		var mat = new THREE.MeshPhongMaterial({
+		        color: 'red',
+		        shading: THREE.FlatShading ,
+		        metalness: 0,
+		        roughness: 0.8,
+		    });
+		var mesh = new THREE.Mesh(geo, mat);
+		mesh.position.set(30,30,2)
+		scene.add(mesh);
+
 		// Initial setup
 		setupCamera();
 		setupRenderer();
@@ -64,11 +75,11 @@
 
 	function setupCamera()
 	{
-		camera = new THREE.PerspectiveCamera( 5, window.innerWidth / window.innerHeight, 0.1, 1000 );
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 0.1, 1000 );
 		camera.position.x = 0;
-		camera.position.y = -52;
+		camera.position.y = -3;
 		camera.position.z = 3;
-		camera.rotation.x = 89 * RAD;
+		camera.rotation.x = 80 * RAD;
 	}
 
 	function setupRenderer()
@@ -232,7 +243,7 @@
 	}
 
 	const MARGIN = 4;
-	const NUMWALLS = 0;
+	const NUMWALLS = 100;
 	var sizeList, positionList, wallList;
 	function createMaze()
 	{	
@@ -401,37 +412,59 @@
     	{
 			if( dPress == 0 ){
 				camera.position.x = player.position.x;
-				camera.position.y = player.position.y - 52;
-				camera.rotation.x = 89 * RAD;
+				camera.position.y = player.position.y - 3;
+				
+				camera.position.z = 3;
+				camera.rotation.x = 80 * RAD;
+				camera.rotation.y = 0;
+				camera.rotation.z = 0;
 			}
 			else if( dPress == 1 ){
-				camera.position.x = player.position.x - 52;
+				camera.position.x = player.position.x - 3;
 				camera.position.y = player.position.y;
+
+				camera.position.z = 2.5;
+				camera.rotation.x = 80 * RAD;
+				camera.rotation.z = -10 * RAD;
 			}
 			else if( dPress == 2 ){
 				camera.position.x = player.position.x;
-				camera.position.y = player.position.y + 52;
-				camera.rotation.x = 91 * RAD;
+				camera.position.y = player.position.y + 3;
+
+				camera.position.z = 3;
+				camera.rotation.x = 97 * RAD;
+				camera.rotation.z = 0;
 			}
 			else if( dPress == 3 ){
-				camera.position.x = player.position.x + 52;
+				camera.position.x = player.position.x + 3;
 				camera.position.y = player.position.y;
+				
+				camera.position.z = 2.5;
+				camera.rotation.x = 80 * RAD;
+				camera.rotation.z = 10 * RAD;
 			}
 
-			// Up/Down
 			if( Key.isDown(Key.W))
 			{	
 				if( dPress == 0)
 					player.position.y += PLAYERSPEED;
 				if( dPress == 2)
 					player.position.y -= PLAYERSPEED;
-			}
+				if( dPress == 1)
+					player.position.x += PLAYERSPEED;
+				if(dPress == 3)
+					player.position.x -= PLAYERSPEED;
+			}	
 			else if( Key.isDown(Key.S))
 			{
 				if( dPress == 0)
 					player.position.y -= PLAYERSPEED;
 				if( dPress == 2)
 					player.position.y += PLAYERSPEED;
+				if( dPress == 1)
+					player.position.x -= PLAYERSPEED;
+				if(dPress == 3)
+					player.position.x += PLAYERSPEED;
 			}
 		}
 	}
@@ -572,7 +605,9 @@
 				// D Key
 				case 68: 
 					if( firstperson )
-						camera.rotation.y += 90 * RAD;
+					{
+						camera.rotation.y -= 90 * RAD;
+					}
 
 					dPress++; // Stores direction value
 
@@ -583,7 +618,9 @@
 				// A Key
 				case 65:
 					if( firstperson )
-						camera.rotation.y -= 90 * RAD;
+					{
+						camera.rotation.y += 90 * RAD;
+					}
 
 					dPress--;
 
@@ -611,6 +648,7 @@
 	function toggleFirstPerson()
 	{	
 		scene.remove( camera )
+		dPress = 0;
 		setupCamera();
 
 		firstperson = true;
