@@ -3,14 +3,18 @@
 	var controls;
 	var camera, cameraHUD;
 	var spotLight, spotlight2, ambientlight;
+	var continueplay = true;
 
 	const RAD = Math.PI / 180; // Degree to radian conversion
 	const MARGIN = 4; // Space between walls
-	const NUMWALLS = 0; // Number of walls
-	const NUMOPPONENT = 4; // Number of opponents
+	const NUMWALLS = 100; // Number of walls
+	const NUMOPPONENT = 20; // Number of opponents
 	const NUMPELLETS = 100; // Number of pellets
 	const PLAYERSPEED = .2; // Player movement speed
-	const OPPONENTSPEED = .1; // Opponent movement speed
+	const OPPONENTSPEED = .15; // Opponent movement speed
+
+	// Note: Sometimes it takes a long time for THREEjs to detect collisions (I'm assuming thats the case), 
+	// so the player is able to go through walls for a couple of seconds at the start
 
 	function init()
 	{	
@@ -19,7 +23,7 @@
 		Physijs.scripts.ammo = 'ammo.js';
 
 		scene = new Physijs.Scene();
-		scene.setGravity(new THREE.Vector3( 0, 0, -30 ));
+		scene.setGravity(new THREE.Vector3( 0, 0, -40 ));
 
 		sceneHUD = new THREE.Scene();
 
@@ -42,6 +46,7 @@
 		createPellets();
 		createHUDScoreBoard();
 		createHUDHelpText();
+		createName();
 
 		// Main Renderer
 		var container = document.getElementById( "mainView" );
@@ -95,15 +100,31 @@
         spotLight2.castShadow = true;
         scene.add(spotLight2);
 
+        spotLight3 = new THREE.SpotLight( 0xffffff, 2, 200, 1 );
+        spotLight3.position.set( 150, 0, 100 );
+        spotLight3.shadowCameraNear = 20;
+        spotLight3.shadowCameraFar = 50;
+        spotLight3.castShadow = true;
+        scene.add(spotLight3);
+
+        spotLight4 = new THREE.SpotLight( 0xffffff, 2, 200, 1 );
+        spotLight4.position.set( -150, 0, 100 );
+        spotLight4.shadowCameraNear = 20;
+        spotLight4.shadowCameraFar = 50;
+        spotLight4.castShadow = true;
+        scene.add(spotLight4);
+
         ambientlight = new THREE.AmbientLight(0xbababa);
         scene.add(ambientlight);
 	}
 
-	var explode, one, two, three, four, five;
+	var gotitem, endgame, jump;
 	function loadSounds()
 	{
-		explode = new Audio("sounds/shotgun.mp3");
-		music = new Audio("sounds/train station_12.mp3")
+		gotitem = new Audio("sounds/gotitem.mp3");
+		endgame = new Audio("sounds/gameover.wav");
+		jump = new Audio("sounds/jump.wav");
+		music = new Audio("sounds/Bespin.mp3");
 
 		music.addEventListener('ended', function() 
 		{
@@ -112,7 +133,7 @@
 		}, false);
 
 		music.volume = .3;
-		//music.play();
+		music.play();
 	}
 
 	function setupHUDCamera()
@@ -152,6 +173,7 @@
 	{	
 		maintainPlayer();
 		maintainOpponents();
+		//maintainPellets();
 		scene.simulate();		
 
 		requestAnimationFrame( render );
@@ -179,7 +201,7 @@
 	{
 		var hgeo = new THREE.BoxGeometry( 100, 2, 8 );
 		var vgeo = new THREE.BoxGeometry( 2, 104, 8 );
-		var mat = Physijs.createMaterial( new THREE.MeshPhongMaterial({color:'blue', shading: THREE.FlatShading}), .95, 0 );
+		var mat = Physijs.createMaterial( new THREE.MeshPhongMaterial({color:0x3d4bff, shading: THREE.FlatShading}), 1, 0 );
 		
 		var upperWall = new Physijs.BoxMesh( hgeo, mat, 0 );
 		var lowerWall = new Physijs.BoxMesh( hgeo, mat, 0 );
@@ -239,7 +261,7 @@
 			}
 
 			var geo = new THREE.BoxGeometry( sizeList[i][0], sizeList[i][1], 8 );
-			var mat = Physijs.createMaterial( new THREE.MeshPhongMaterial({color:'white', shading: THREE.FlatShading}), .95, 0 );
+			var mat = Physijs.createMaterial( new THREE.MeshPhongMaterial({color: 0x3d4bff, shading: THREE.FlatShading}), .95, 0 );
 			var wall = new Physijs.BoxMesh( geo, mat, 0 );
 			wall.name = 'Wall';
 
@@ -256,17 +278,17 @@
 	{	
 		var geo = new THREE.TetrahedronGeometry( 1, 2 );
 		var mat =  new Physijs.createMaterial( new THREE.MeshPhongMaterial({
-		        color: 0x95d5ed,
+		        color: 0x72b1ff,
 		        shading: THREE.FlatShading ,
 		        metalness: 0,
 		        roughness: 0.8,
-		    }), 0, 0 );
+		    }), 1, 0 );
 
 
 		player = new Physijs.SphereMesh( geo, mat );
     	player.addEventListener( 'collision', checkCollision);
 
-		player.position.set(0, 0, 2);
+		player.position.set(0, 0, 1);
 		player.name = "Player";
 		scene.add( player );
 	}
@@ -281,7 +303,7 @@
 
 		var geo = new THREE.TetrahedronGeometry( 1, 1 );
 		var mat =  new Physijs.createMaterial( new THREE.MeshPhongMaterial({
-		        color: 'purple',
+		        color: 'white',
 		        shading: THREE.FlatShading ,
 		        metalness: 0,
 		        roughness: 0.8,
@@ -319,7 +341,7 @@
 
 		var geo = new THREE.TetrahedronGeometry( .7, 0 );
 		var mat =  new Physijs.createMaterial( new THREE.MeshPhongMaterial({
-		        color: 'purple',
+		        color: 'yellow',
 		        shading: THREE.FlatShading ,
 		        metalness: 0,
 		        roughness: 0.8,
@@ -340,7 +362,7 @@
 		}
 	}
 
-	var scoreValue;
+	var scoreValue, score;
 	function createHUDScoreBoard()
 	{
 		var mat = new THREE.MeshLambertMaterial({color:'white'});
@@ -354,7 +376,7 @@
 	        bevelSize: 0
 	   	} );
 
-	    var score = new THREE.Mesh( geo, mat );
+	    score = new THREE.Mesh( geo, mat );
 
 	    score.position.set(.3, 0, 3);
 	    score.rotation.x = 90 * RAD;
@@ -366,13 +388,14 @@
 	    updateScoreBoard(scoreValue);
 	}
 
+	var line1, line2, line3, line4;
 	function createHUDHelpText()
 	{	
 		var text1 = 'W / S - Forward / Backward';
 		var text2 = 'A / D - Rotate Player';
 		var text3 = 'Shift - Toggle View';
-		var name = 'Charlene Juvida';
-		
+		var text4 = 'Space - Jump';
+
 		var mat = new THREE.MeshLambertMaterial({color:'white'});
 	   
 	    var geo1 = new THREE.TextGeometry( text1, {
@@ -402,7 +425,7 @@
 	        bevelThickness: .025,
 	        bevelSize: 0
 	   	} );
-	   	var geo4 = new THREE.TextGeometry( name, {
+	   	var geo4 = new THREE.TextGeometry( text4, {
 	    	font: 'calibri',
 	        size: .5,
 	        height: .5,
@@ -413,19 +436,19 @@
 	   	} );
 
 
-	    var line1 = new THREE.Mesh( geo1, mat );
+	    line1 = new THREE.Mesh( geo1, mat );
 	    line1.rotation.x = 90 * RAD;
 	    line1.rotation.z = 270 * RAD;
 
-	    var line2 = new THREE.Mesh( geo2, mat );
+	    line2 = new THREE.Mesh( geo2, mat );
 	    line2.rotation.x = 90 * RAD;
 	    line2.rotation.z = 270 * RAD;
 
-	    var line3 = new THREE.Mesh( geo3, mat );
+	    line3 = new THREE.Mesh( geo3, mat );
 	    line3.rotation.x = 90 * RAD;
 	    line3.rotation.z = 270 * RAD;
 
-	    var line4 = new THREE.Mesh( geo4, mat );
+	    line4 = new THREE.Mesh( geo4, mat );
 	    line4.rotation.x = 90 * RAD;
 	    line4.rotation.z = 270 * RAD;
 
@@ -440,6 +463,26 @@
 	    sceneHUD.add(line4);
 	}
 
+	function createName()
+	{
+		var name = 'Charlene Juvida'
+
+		var mat = new THREE.MeshLambertMaterial({color:'white'});
+	   	var geo = new THREE.TextGeometry( name, {
+	    	font: 'calibri',
+	        size: 8,
+	        height: .5,
+	        curveSegments: 20,
+	        bevelEnabled: false,
+	        bevelThickness: .025,
+	        bevelSize: 0
+	   	} );
+
+	   	var mesh = new THREE.Mesh(geo, mat);
+	   	mesh.position.set(-35, -50, 20);
+	   	scene.add(mesh);
+	}
+
 	/*
 	 * RENDER + ANIMATION
 	 */
@@ -451,16 +494,18 @@
 		player.setLinearVelocity(new THREE.Vector3(0, 0, 0));
     	player.setAngularVelocity(new THREE.Vector3(0, 0, 0));
 
-    	if(firstperson)
+    	if(firstperson && continueplay)
     	{
 			if( dPress == 0 ){
 				camera.position.x = player.position.x;
 				camera.position.y = player.position.y - 3;
-				
+
 				camera.position.z = 3;
 				camera.rotation.x = 80 * RAD;
 				camera.rotation.y = 0;
 				camera.rotation.z = 0;
+
+				displayDirection( 0 );
 			}
 			else if( dPress == 1 ){
 				camera.position.x = player.position.x - 3;
@@ -469,6 +514,8 @@
 				camera.position.z = 2.5;
 				camera.rotation.x = 80 * RAD;
 				camera.rotation.z = -10 * RAD;
+
+				displayDirection( 1 );
 			}
 			else if( dPress == 2 ){
 				camera.position.x = player.position.x;
@@ -477,6 +524,8 @@
 				camera.position.z = 3;
 				camera.rotation.x = 97 * RAD;
 				camera.rotation.z = 0;
+
+				displayDirection( 2 );
 			}
 			else if( dPress == 3 ){
 				camera.position.x = player.position.x + 3;
@@ -485,6 +534,8 @@
 				camera.position.z = 2.5;
 				camera.rotation.x = 80 * RAD;
 				camera.rotation.z = 10 * RAD;
+
+				displayDirection( 3 );
 			}
 
 			if( Key.isDown(Key.W))
@@ -508,6 +559,15 @@
 					player.position.x -= PLAYERSPEED;
 				if(dPress == 3)
 					player.position.x += PLAYERSPEED;
+			}
+
+			if( Key.isDown(Key.SPACE)){
+				player.position.z = player.position.z +.05;
+				jump.play();
+				if (player.position.z > 2)
+				{
+					player.position.z = 2;
+				}
 			}
 		}
 	}
@@ -549,9 +609,71 @@
 		counter++;
 	}
 
+	var rise = true;
+	function maintainPellets()
+	{
+		for(var i = 0; i < NUMPELLETS; i++)
+		{	
+			if(pelletList[i] != null || pelletList[i] != undefined){
+				pelletList[i].__dirtyPosition = true;
+				pelletList[i].__dirtyRotation = true;
+
+				pelletList[i].setLinearVelocity(new THREE.Vector3(0, 0, 0));
+		    	pelletList[i].setAngularVelocity(new THREE.Vector3(0, 0, 0));
+				
+				if(rise)
+				{
+					pelletList[i].position.z = pelletList[i].position.z + .01;
+					
+					if(pelletList[i].position.z > 1.5)
+						rise = false;
+				}
+				else
+				{
+					pelletList[i].position.z = pelletList[i].position.z - .01;
+					if(pelletList[i].position.z < 1)
+						rise = true;;
+				}
+			}
+			
+		}
+	}
+
 	/*
 	 * HELPER FUNCTIONS
 	 */
+	// Displays game over
+	function displayGameOver()
+	{	
+		console.log('game over');
+		sceneHUD.remove(scoreMesh);
+		sceneHUD.remove(score);
+		sceneHUD.remove(line1);
+		sceneHUD.remove(line2);
+		sceneHUD.remove(line3);
+		sceneHUD.remove(line4);
+		sceneHUD.remove(dMesh);
+
+		var mat = new THREE.MeshLambertMaterial({color:'white'});
+	    var geo = new THREE.TextGeometry( 'GAME OVER', {
+	    	font: 'calibri',
+	        size: 3,
+	        height: .5,
+	        curveSegments: 20,
+	        bevelEnabled: false,
+	        bevelThickness: .025,
+	        bevelSize: 0
+	   	} );
+
+	    var gameover = new THREE.Mesh(geo, mat);
+	    gameover.position.set(-1, 0, 10);
+	    gameover.rotation.x = 90 * RAD;
+	    gameover.rotation.z = 270 * RAD;
+	    sceneHUD.add(gameover);
+
+	    continueplay = false;
+	}
+
 	// Switches opponent direction at collision or at random
 	function switchDirection( index )
 	{	
@@ -559,6 +681,47 @@
 
 		while(directionList[index] == previous)
 			directionList[index] = generateParameters( 1, 4 );
+	}
+
+
+	// Displays direction in HUD Renderer
+	var dMesh;
+	function displayDirection( direction )
+	{	
+		var text; 
+
+		if(direction == 0)
+			text = 'N';
+		if(direction == 1)
+			text = 'E';
+		if(direction == 2)
+			text = 'S';
+		if(direction == 3)
+			text = 'W';
+
+		// Remove old mesh
+		if (dMesh != null)
+			sceneHUD.remove(dMesh);
+
+		var geo = new THREE.TextGeometry((text),
+	    {
+	    	font: 'calibri',
+	        size: 2.5,
+	        height: .5,
+	        curveSegments: 10,
+	        bevelEnabled: false,
+	        bevelThickness: .25,
+	        bevelSize: 0
+	    });
+
+	    var mat = new THREE.MeshLambertMaterial({color:'white'});
+	    dMesh = new THREE.Mesh( geo, mat );
+	   	
+		dMesh.position.set(-1.5, 0, -13);
+		dMesh.rotation.x = 90 * RAD;
+		dMesh.rotation.z = 270 * RAD;
+
+		sceneHUD.add(dMesh);
 	}
 
 	var scoreMesh;
@@ -612,13 +775,16 @@
 	 * EVENT LISTENERS
 	 */
 	function checkCollision( other_object, linear_velocity, angular_velocity )
-	{
-		if( other_object.name == 'Opponent' )
-			console.log('GAME OVER')
+	{	
+		if( other_object.name == 'Opponent' ){
+			displayGameOver();
+			endgame.play();
+		}
 		else if( other_object.name == 'Pellet' )
 		{
 			scene.remove(other_object);
 			updateScoreBoard( ++scoreValue );
+			gotitem.play();
 		}
 	}
 
